@@ -1,0 +1,112 @@
+[
+  {
+    "firstname": "Praveen",
+    "lastname": "Kumar",
+    "totalprice": 1000,
+    "depositpaid": true,
+    "bookingdates": {
+      "checkin": "2026-07-10",
+      "checkout": "2026-07-15"
+    },
+    "additionalneeds": "Breakfast"
+  },
+  {
+    "firstname": "Rahul",
+    "lastname": "Sharma",
+    "totalprice": 1200,
+    "depositpaid": false,
+    "bookingdates": {
+      "checkin": "2026-07-11",
+      "checkout": "2026-07-16"
+    },
+    "additionalneeds": "Lunch"
+  },
+  {
+    "firstname": "Amit",
+    "lastname": "Patel",
+    "totalprice": 1500,
+    "depositpaid": true,
+    "bookingdates": {
+      "checkin": "2026-07-12",
+      "checkout": "2026-07-17"
+    },
+    "additionalneeds": "Dinner"
+  },
+  {
+    "firstname": "Sneha",
+    "lastname": "Rao",
+    "totalprice": 1800,
+    "depositpaid": false,
+    "bookingdates": {
+      "checkin": "2026-07-13",
+      "checkout": "2026-07-18"
+    },
+    "additionalneeds": "Breakfast"
+  },
+  {
+    "firstname": "Anil",
+    "lastname": "Verma",
+    "totalprice": 900,
+    "depositpaid": true,
+    "bookingdates": {
+      "checkin": "2026-07-14",
+      "checkout": "2026-07-19"
+    },
+    "additionalneeds": "Lunch"
+  },
+  {
+    "firstname": "Kiran",
+    "lastname": "Reddy",
+    "totalprice": 1300,
+    "depositpaid": true,
+    "bookingdates": {
+      "checkin": "2026-07-15",
+      "checkout": "2026-07-20"
+    },
+    "additionalneeds": "Dinner"
+  },
+  {
+    "firstname": "Meena",
+    "lastname": "Joshi",
+    "totalprice": 1700,
+    "depositpaid": false,
+    "bookingdates": {
+      "checkin": "2026-07-16",
+      "checkout": "2026-07-21"
+    },
+    "additionalneeds": "Breakfast"
+  },
+  {
+    "firstname": "Rakesh",
+    "lastname": "Singh",
+    "totalprice": 2000,
+    "depositpaid": true,
+    "bookingdates": {
+      "checkin": "2026-07-17",
+      "checkout": "2026-07-22"
+    },
+    "additionalneeds": "Lunch"
+  },
+  {
+    "firstname": "Divya",
+    "lastname": "Nair",
+    "totalprice": 1100,
+    "depositpaid": true,
+    "bookingdates": {
+      "checkin": "2026-07-18",
+      "checkout": "2026-07-23"
+    },
+    "additionalneeds": "Dinner"
+  },
+  {
+    "firstname": "Arjun",
+    "lastname": "Das",
+    "totalprice": 1600,
+    "depositpaid": false,
+    "bookingdates": {
+      "checkin": "2026-07-19",
+      "checkout": "2026-07-24"
+    },
+    "additionalneeds": "Breakfast"
+  }
+]
