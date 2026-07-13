@@ -2,7 +2,6 @@ package com.restassured.demo.tests;
 
 import com.restassured.demo.constants.APIConstants;
 import com.restassured.demo.models.Booking;
-import com.restassured.demo.models.BookingDates;
 import com.restassured.demo.tests.common.BaseTest;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
@@ -10,6 +9,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import static io.restassured.RestAssured.given;
+
 import com.restassured.demo.utils.TokenUtils;
 import java.util.List;
 import com.restassured.demo.utils.JsonReader;
@@ -40,7 +40,11 @@ public class BookingTest extends BaseTest {
 
             int bookingId = createResponse.jsonPath().getInt("bookingid");
 
-            System.out.println("Created Booking ID : " + bookingId);
+            System.out.println("\n========== CREATE BOOKING ==========");
+            System.out.println("Status Code : " + createResponse.getStatusCode());
+            System.out.println("Booking ID : " + bookingId);
+            System.out.println("Response:");
+            System.out.println(createResponse.asPrettyString());
 
             // GET
 
@@ -53,6 +57,11 @@ public class BookingTest extends BaseTest {
                             .get(APIConstants.BOOKING + "/" + bookingId);
 
             getResponse.then().statusCode(200);
+
+            System.out.println("\n========== GET BOOKING ==========");
+            System.out.println("Status Code : " + getResponse.getStatusCode());
+            System.out.println("Response:");
+            System.out.println(getResponse.asPrettyString());
 
             Assert.assertEquals(
                     getResponse.jsonPath().getString("firstname"),
@@ -75,38 +84,50 @@ public class BookingTest extends BaseTest {
 
             updateResponse.then().statusCode(200);
 
+            System.out.println("\n========== UPDATE BOOKING ==========");
+            System.out.println("Status Code : " + updateResponse.getStatusCode());
+            System.out.println("Updated Response:");
+            System.out.println(updateResponse.asPrettyString());
+
             Assert.assertEquals(
                     updateResponse.jsonPath().getString("firstname"),
                     booking.getFirstname());
 
             // DELETE
 
-            given()
-                    .cookie("token", token)
+            Response deleteResponse =
 
-                    .when()
+                    given()
+                            .cookie("token", token)
 
-                    .delete(APIConstants.BOOKING + "/" + bookingId)
+                            .when()
 
-                    .then()
+                            .delete(APIConstants.BOOKING + "/" + bookingId);
 
-                    .statusCode(201);
+            deleteResponse.then().statusCode(201);
+
+            System.out.println("\n========== DELETE BOOKING ==========");
+            System.out.println("Status Code : " + deleteResponse.getStatusCode());
+            System.out.println("Booking Deleted Successfully");
 
             // VERIFY DELETE
 
-            given()
+            Response verifyDeleteResponse =
 
-                    .when()
+                    given()
 
-                    .get(APIConstants.BOOKING + "/" + bookingId)
+                            .when()
 
-                    .then()
+                            .get(APIConstants.BOOKING + "/" + bookingId);
 
-                    .statusCode(404);
+            verifyDeleteResponse.then().statusCode(404);
 
-            System.out.println("-----------------------------------");
+            System.out.println("\n========== VERIFY DELETE ==========");
+            System.out.println("Status Code : " + verifyDeleteResponse.getStatusCode());
+            System.out.println("Booking Not Found");
+            System.out.println("Delete Verification Passed");
+
+            System.out.println("\n==============================================================");
         }
     }
-
-
 }
