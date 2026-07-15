@@ -3,131 +3,347 @@ package com.restassured.demo.tests;
 import com.restassured.demo.constants.APIConstants;
 import com.restassured.demo.models.Booking;
 import com.restassured.demo.tests.common.BaseTest;
+import com.restassured.demo.utils.JsonReader;
+import com.restassured.demo.utils.OutputFormatter;
+import com.restassured.demo.utils.TokenUtils;
+import com.restassured.demo.utils.UpdateUtils;
+
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import static io.restassured.RestAssured.given;
-
-import com.restassured.demo.utils.TokenUtils;
 import java.util.List;
-import com.restassured.demo.utils.JsonReader;
+
+import static io.restassured.RestAssured.given;
 
 public class BookingTest extends BaseTest {
 
+    private int passed = 0;
+    private int failed = 0;
+    private int totalApiCalls = 0;
+
     @Test
     public void bookingCRUDFlow() {
+
+        long startTime = System.currentTimeMillis();
 
         List<Booking> bookings = JsonReader.getBookingData();
 
         String token = TokenUtils.getToken();
 
+        int bookingNumber = 1;
+
         for (Booking booking : bookings) {
 
-            // CREATE
+            OutputFormatter.printBookingHeader(
+                    bookingNumber,
+                    booking.getFirstname() + " " + booking.getLastname());
 
-            Response createResponse =
+            Response createResponse = createBooking(booking);
 
-                    given()
-                            .contentType(ContentType.JSON)
-                            .body(booking)
+            int bookingId =
+                    createResponse.jsonPath().getInt("bookingid");
 
-                            .when()
-                            .post(APIConstants.BOOKING);
+            getBookingBeforeUpdate(bookingId);
 
-            createResponse.then().statusCode(200);
+            UpdateUtils.UpdateResult updateResult =
+                    updateBooking(bookingId, booking, token);
 
-            int bookingId = createResponse.jsonPath().getInt("bookingid");
+            getBookingAfterUpdate(bookingId);
 
-            System.out.println("\n========== CREATE BOOKING ==========");
-            System.out.println("Status Code : " + createResponse.getStatusCode());
-            System.out.println("Booking ID : " + bookingId);
-            System.out.println("Response:");
-            System.out.println(createResponse.asPrettyString());
+            deleteBooking(bookingId, token);
 
-            // GET
+            verifyDelete(bookingId);
 
-            Response getResponse =
+            bookingNumber++;
 
-                    given()
-
-                            .when()
-
-                            .get(APIConstants.BOOKING + "/" + bookingId);
-
-            getResponse.then().statusCode(200);
-
-            System.out.println("\n========== GET BOOKING ==========");
-            System.out.println("Status Code : " + getResponse.getStatusCode());
-            System.out.println("Response:");
-            System.out.println(getResponse.asPrettyString());
-
-            Assert.assertEquals(
-                    getResponse.jsonPath().getString("firstname"),
-                    booking.getFirstname());
-
-            // UPDATE
-
-            booking.setFirstname(booking.getFirstname() + "_Updated");
-
-            Response updateResponse =
-
-                    given()
-                            .contentType(ContentType.JSON)
-                            .cookie("token", token)
-                            .body(booking)
-
-                            .when()
-
-                            .put(APIConstants.BOOKING + "/" + bookingId);
-
-            updateResponse.then().statusCode(200);
-
-            System.out.println("\n========== UPDATE BOOKING ==========");
-            System.out.println("Status Code : " + updateResponse.getStatusCode());
-            System.out.println("Updated Response:");
-            System.out.println(updateResponse.asPrettyString());
-
-            Assert.assertEquals(
-                    updateResponse.jsonPath().getString("firstname"),
-                    booking.getFirstname());
-
-            // DELETE
-
-            Response deleteResponse =
-
-                    given()
-                            .cookie("token", token)
-
-                            .when()
-
-                            .delete(APIConstants.BOOKING + "/" + bookingId);
-
-            deleteResponse.then().statusCode(201);
-
-            System.out.println("\n========== DELETE BOOKING ==========");
-            System.out.println("Status Code : " + deleteResponse.getStatusCode());
-            System.out.println("Booking Deleted Successfully");
-
-            // VERIFY DELETE
-
-            Response verifyDeleteResponse =
-
-                    given()
-
-                            .when()
-
-                            .get(APIConstants.BOOKING + "/" + bookingId);
-
-            verifyDeleteResponse.then().statusCode(404);
-
-            System.out.println("\n========== VERIFY DELETE ==========");
-            System.out.println("Status Code : " + verifyDeleteResponse.getStatusCode());
-            System.out.println("Booking Not Found");
-            System.out.println("Delete Verification Passed");
-
-            System.out.println("\n==============================================================");
         }
+
+        long endTime = System.currentTimeMillis();
+
+        OutputFormatter.printSummary(
+                bookings.size(),
+                totalApiCalls,
+                passed,
+                failed,
+                endTime - startTime);
+
     }
+
+    // ===========================================================
+    // CREATE BOOKING
+    // ===========================================================
+
+    private Response createBooking(Booking booking) {
+
+        OutputFormatter.printStep("STEP 1 : CREATE BOOKING");
+
+        Response response =
+
+                given()
+
+                        .contentType(ContentType.JSON)
+
+                        .body(booking)
+
+                        .when()
+
+                        .post(APIConstants.BOOKING);
+
+        OutputFormatter.printApiDetails(
+                "POST " + APIConstants.BOOKING,
+                200,
+                response);
+
+        response.then().statusCode(200);
+
+        totalApiCalls++;
+        passed++;
+
+        System.out.println("Booking ID : "
+                + response.jsonPath().getInt("bookingid"));
+
+        System.out.println();
+
+        System.out.println(response.asPrettyString());
+
+        return response;
+
+    }
+
+    // ===========================================================
+    // GET BEFORE UPDATE
+    // ===========================================================
+
+    private void getBookingBeforeUpdate(int bookingId) {
+
+        OutputFormatter.printStep(
+                "STEP 2 : GET BOOKING (Before Update)");
+
+        Response response =
+
+                given()
+
+                        .when()
+
+                        .get(APIConstants.BOOKING + "/" + bookingId);
+
+        OutputFormatter.printApiDetails(
+
+                "GET " + APIConstants.BOOKING + "/" + bookingId,
+
+                200,
+
+                response);
+
+        response.then().statusCode(200);
+
+        totalApiCalls++;
+        passed++;
+
+        OutputFormatter.printBooking(response);
+
+    }
+    // ===========================================================
+    // UPDATE BOOKING
+    // ===========================================================
+
+    private UpdateUtils.UpdateResult updateBooking(int bookingId,
+                                                   Booking booking,
+                                                   String token) {
+
+        OutputFormatter.printStep("STEP 3 : UPDATE BOOKING");
+
+        UpdateUtils.UpdateResult updateResult =
+                UpdateUtils.updateBooking(booking);
+
+        Response response =
+
+                given()
+
+                        .contentType(ContentType.JSON)
+
+                        .cookie("token", token)
+
+                        .body(booking)
+
+                        .when()
+
+                        .put(APIConstants.BOOKING + "/" + bookingId);
+
+        OutputFormatter.printApiDetails(
+
+                "PUT " + APIConstants.BOOKING + "/" + bookingId,
+
+                200,
+
+                response);
+
+        response.then().statusCode(200);
+
+        totalApiCalls++;
+        passed++;
+
+        OutputFormatter.printUpdatedField(
+
+                updateResult.getFieldName(),
+
+                updateResult.getOldValue(),
+
+                updateResult.getNewValue());
+
+        Assert.assertEquals(
+
+                response.jsonPath().getString(
+                        convertField(updateResult.getFieldName())),
+
+                String.valueOf(updateResult.getNewValue()));
+
+        return updateResult;
+
+    }
+
+    // ===========================================================
+    // GET AFTER UPDATE
+    // ===========================================================
+
+    private void getBookingAfterUpdate(int bookingId) {
+
+        OutputFormatter.printStep(
+                "STEP 4 : GET BOOKING (After Update)");
+
+        Response response =
+
+                given()
+
+                        .when()
+
+                        .get(APIConstants.BOOKING + "/" + bookingId);
+
+        OutputFormatter.printApiDetails(
+
+                "GET " + APIConstants.BOOKING + "/" + bookingId,
+
+                200,
+
+                response);
+
+        response.then().statusCode(200);
+
+        totalApiCalls++;
+        passed++;
+
+        System.out.println("Updated Booking Details");
+
+        System.out.println();
+
+        OutputFormatter.printBooking(response);
+
+    }
+
+    // ===========================================================
+    // FIELD NAME CONVERTER
+    // ===========================================================
+
+    private String convertField(String field) {
+
+        switch (field) {
+
+            case "Firstname":
+                return "firstname";
+
+            case "Lastname":
+                return "lastname";
+
+            case "Total Price":
+                return "totalprice";
+
+            case "Deposit Paid":
+                return "depositpaid";
+
+            case "Check-In Date":
+                return "bookingdates.checkin";
+
+            case "Check-Out Date":
+                return "bookingdates.checkout";
+
+            case "Additional Needs":
+                return "additionalneeds";
+
+            default:
+                return "";
+
+        }
+
+    }
+    // ===========================================================
+    // DELETE BOOKING
+    // ===========================================================
+
+    private void deleteBooking(int bookingId, String token) {
+
+        OutputFormatter.printStep("STEP 5 : DELETE BOOKING");
+
+        Response response =
+
+                given()
+
+                        .cookie("token", token)
+
+                        .when()
+
+                        .delete(APIConstants.BOOKING + "/" + bookingId);
+
+        OutputFormatter.printApiDetails(
+
+                "DELETE " + APIConstants.BOOKING + "/" + bookingId,
+
+                201,
+
+                response);
+
+        response.then().statusCode(201);
+
+        totalApiCalls++;
+        passed++;
+
+        OutputFormatter.printDeleteSuccess();
+
+    }
+
+    // ===========================================================
+    // VERIFY DELETE
+    // ===========================================================
+
+    private void verifyDelete(int bookingId) {
+
+        OutputFormatter.printStep("STEP 6 : VERIFY DELETE");
+
+        Response response =
+
+                given()
+
+                        .when()
+
+                        .get(APIConstants.BOOKING + "/" + bookingId);
+
+        OutputFormatter.printApiDetails(
+
+                "GET " + APIConstants.BOOKING + "/" + bookingId,
+
+                404,
+
+                response);
+
+        response.then().statusCode(404);
+
+        totalApiCalls++;
+        passed++;
+
+        OutputFormatter.printVerifyDelete();
+
+    }
+
 }
